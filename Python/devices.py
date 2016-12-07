@@ -33,6 +33,7 @@ ASA = {
 	'device_type': 'cisco_asa',
 	'ip': '192.168.0.1',
 	'username': 'admin',
+	'password': 'Your-device-password-here',
 	'port': '22',
 	'secret': ''
 }
