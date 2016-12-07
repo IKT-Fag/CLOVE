@@ -1,7 +1,7 @@
 # CLOVE
 *Create Lots Of Virtual ESXi-hosts*
 
-![preview](https://raw.githubusercontent.com/PetterBomban/CLOVE/master/Docs/Img/preview.png)
+![preview](https://raw.githubusercontent.com/IKT-Fag/CLOVE/master/Docs/Img/preview.png)
 
 ## Overview
 
