@@ -9,7 +9,7 @@ This collection of scripts are used for mass-creating virtual ESXi hosts. I've b
 
 I still have to do some refactoring (Like making this into a module), but I've tested all of the script files, and they work just fine.
 
-The most important script file is called `New-ESXiHost.ps1`. This is responsible for installing the host, and doing basic configuration. This repository contain a lot more scripts though for easier automation of other tasks, like domain join, permissions etc.
+The most important script file is called `New-ESXiHost.ps1`. This is responsible for installing the host, and doing basic configuration. This repository contains a lot more scripts though for easier automation of other tasks, like domain join, permissions etc.
 
 There is also a Python part, which I used for automating creation of vlans for each virtual ESXi host. I did this so that the students at our school could have their own subnets. This could be useful if you want to do the same thing, and are using Cisco devices (although the Netmiko module supports more than just Cisco).
 
