@@ -27,7 +27,7 @@ function Set-ESXiHostDomain
         [Parameter(
             Mandatory = $True
         )]
-        $ADUser,
+        [string[]]$ADUser = @(),
 
         [Parameter(
             Mandatory = $True
@@ -45,7 +45,9 @@ function Set-ESXiHostDomain
     {
         Connect-VIServer -Server $VIServer -User $VIUser -Password $VIPassword `
             -Force -WarningAction SilentlyContinue | Out-Null
+
         $VMHost = Get-VMHost -Name $VIServer
+        $DomainShort = ($Domain.Split("."))[0]
 
         Write-Host $VIServer
 
@@ -86,20 +88,25 @@ function Set-ESXiHostDomain
         ## Starting to configure user rights.
         ## By default, ESX Admins are added.
         ## Here we add the individual user to the host, with full admins rights.
-        $RetryCount = 0
-        while ((-not $VIAccount) -and ($RetryCount -ge 6))
+
+        ## TODO: This is not done yet. I have to connect users to a server.
+        foreach ($User in $ADUser)
         {
-            try 
+            $RetryCount = 0
+            while ((-not $VIAccount) -and ($RetryCount -le 6))
             {
-                $VIAccount = Get-VIAccount -Server $VIServer -Domain "IKT-Fag" -User $ADUser -ErrorAction Stop
-                New-VIPermission -Principal $VIAccount -Role "Admin" -Entity $VMHost -ErrorAction Stop
-            }
-            catch 
-            {
-                Write-Warning "Permissions failed, trying again $RetryCount"
-                $VIAccount = $Null
-                Start-Sleep -Seconds 5
-                $RetryCount += 1
+                try 
+                {
+                    $VIAccount = Get-VIAccount -Server $VIServer -Domain $DomainShort -User $User -ErrorAction Stop
+                    New-VIPermission -Principal $VIAccount -Role "Admin" -Entity $VMHost -ErrorAction Stop
+                }
+                catch 
+                {
+                    Write-Warning "Permissions failed, trying again $RetryCount"
+                    $VIAccount = $Null
+                    Start-Sleep -Seconds 5
+                    $RetryCount += 1
+                }
             }
         }
 
