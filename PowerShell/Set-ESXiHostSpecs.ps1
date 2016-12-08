@@ -37,6 +37,10 @@
         $spec = New-Object -Type VMware.Vim.VirtualMachineConfigSpec -Property @{"NumCoresPerSocket" = $NumCores;"numCPUs" = $NumSockets}
         $_.ExtensionData.ReconfigVM_Task($spec)
 
+        ## TODO:
+        ## https://communities.vmware.com/thread/511353?start=0&tstart=0
+        ## Support for 64 bit guests on the virtual esxi hosts
+
     }
 
     Disconnect-VIServer * -Confirm:$False | Out-Null
