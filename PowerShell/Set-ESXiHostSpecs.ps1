@@ -38,6 +38,12 @@
         $_.ExtensionData.ReconfigVM_Task($spec)
 
         ## TODO:
+        ## Upgrade Virtual Machine hardware
+
+        ## TODO
+        ## Set the guest OS to ESXi 6.x instead of 5.x (After upgrading hardware)
+
+        ## TODO:
         ## https://communities.vmware.com/thread/511353?start=0&tstart=0
         ## Support for 64 bit guests on the virtual esxi hosts
 
