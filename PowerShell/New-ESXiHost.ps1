@@ -23,11 +23,13 @@ function New-ESXiHost
 
     process
     {
+        ## Used for measuring time used
+        $StartTime = Get-Date
+
         ## Collecting objects later on
         $ObjCollection = @()
 
         Write-Host "Connecting to viserver.."
-
         $vCenter = Connect-VIServer -Server $Obj.vCenter -Credential $Obj.vCenterCred
         
         ## Datastore refrence
@@ -51,13 +53,20 @@ function New-ESXiHost
         $OvfConfig.common.guestinfo.ssh.value = $Obj.HostSSH
 
         ## Get users based on the UserGroup AD-group
-        $Users = Get-ADGroupMember -Identity $obj.UserGroup -Recursive
-         
-        Write-Host "Loaded users"
+        #$Users = Get-ADGroupMember -Identity $obj.UserGroup -Recursive
+
+        ## Used for deploying vESXi hosts without ad users.
+        $Users = 1..30 | % {
+            [PSCustomObject]@{
+                Group = $_
+                SamAccountName = "Dummy-$_"
+            }
+        }
 
         ## Loop through each user.
         ## $i ++ at the end
         $i = $Obj.HostIPStartFrom
+        $num = 1
         foreach ($User in $Users)
         {
             ## VM name is created from username and ip,
@@ -71,13 +80,13 @@ function New-ESXiHost
             ## Checking if the VM already exists (by $VM.Name)
             $Skip = $False
             $AllEsxi = Get-VM
-            $AllEsxi | foreach {
-                if ($_.Name -like "*$Username*") 
+            $AllEsxi | ForEach-Object {
+                if ($_.Name -eq $VMName) 
                 {
                     $Skip = $True
                 }
             }
-            if ($Skip -eq $True)
+            if ($Skip)
             {
                 Write-Host "Detected already existing esxi host, skip."
                 continue
@@ -88,14 +97,16 @@ function New-ESXiHost
             $OvfConfig.common.guestinfo.ipaddress.value = $IPAddress
 
             ## Start importing the ovfFile and its config
-            $VM = Import-VApp `
-                -Source $Obj.OvfFile `
-                -OvfConfiguration $OvfConfig `
-                -Name $VMName `
-                -Location $Cluster `
-                -VMHost $VMHost `
-                -Datastore $Datastore `
-                -DiskStorageFormat thin
+            $Params = @{
+                "Source" = $Obj.OvfFile
+                "OvfConfiguration" = $OvfConfig
+                "Name" = $VMName
+                "Location" = $Cluster
+                "VMHost" = $VMHost
+                "Datastore" = $Datastore
+                "DiskStorageFormat" = "thin"
+            }
+            $VM = Import-VApp @Params
 
             Write-Host "Created VM, configuring.."
 
@@ -106,12 +117,14 @@ function New-ESXiHost
             $VM | Start-VM | Out-Null
 
             ## This object is returned at the end.
+            $vlan = (1020 + $num)
+            $subnet = "40.$(0 + $num).0.0"
             $VMObject = [PSCustomObject]@{
                 User = $Username
-                Vlan = (1010 + $i)
+                Vlan = $vlan
                 Name = $VMName
                 VIServer = $IPAddress
-                Subnet = "127.16.0.0"
+                Subnet = $subnet
                 Netmask = $Obj.HostNetmask
                 Wildcard = (Convert-NetmaskToWildcard -Netmask $Obj.HostNetmask).Wildcard
                 HostSizeGB = $Obj.HostHDDSizeGB
@@ -119,13 +132,22 @@ function New-ESXiHost
             $ObjCollection += $VMObject
 
             $i++
+            $num++
         }
 
         ## We create a JSON file for each object, for use later
-        $ObjCollection | foreach {
-            $PSItem | ConvertTo-Json | Out-File -FilePath "$ProjectRoot\Json\$($PSItem.Name).json" -Encoding ascii -Force
+        $ObjCollection | ForEach-Object {
+            $PSItem | ConvertTo-Json | Out-File -FilePath "$ProjectRoot\Json\Dummies\$($PSItem.Name).json" -Encoding ascii -Force
         }
         $ObjCollection
+
+        $EndTime = Get-Date
+        $Timespan = [PSCustomObject]@{
+            StartTime   = $StartTime
+            EndTime     = $EndTime
+            TimeUsed    = $EndTime - $StartTime
+        }
+        Write-Output $Timespan
     }
     
     end
@@ -135,27 +157,31 @@ function New-ESXiHost
 
 }
 
-$Cred = Get-Credential
+if(!($Cred))
+{
+    $Cred = Get-Credential
+}
 
 $Obj = [PSCustomObject]@{
     ## For creation of host. All are required
     vCenter = "192.168.0.9"
     vCenterCred = $Cred 
     vCenterCluster = "Elev-VM" 
-    vCenterDatastore = "Ghost" ## The datastore you want the vHosts to be stored on
-    vCenterNetwork = "TrunkNic" ## I use a trunk NIC for seperating vHosts, but you can use w/e you want
+    vCenterDatastore = "Smith" ## The datastore you want the vHosts to be stored on
+    vCenterNetwork = "Labnett" ## I use a trunk NIC for seperating vHosts, but you can use w/e you want
     vCenterVMHost = "192.168.0.20" ## This would be two eventually
-    OvfFile = "C:\Users\admin\Documents\GitHub\Create-Virtual-ESXi-Hosts\ignore\Nested_ESXi6.x_Appliance_Template_v5.ova"
-    ## www.virtuallyghetto.com/2015/12/deploying-nested-esxi-is-even-easier-now-with-the-esxi-virtual-appliance.html
-    HostIP = "172.16.0.xxx" ## xxx gets replaced with HostIPStartFrom (180 + 1 after the first one)
-    HostIPStartFrom = 180
+    OvfFile = "C:\Users\admin\Documents\GitHub\CLOVE\ignore\Nested_ESXi6.x_Appliance_Template_v5.ova"
+    HostIP = "192.168.10.xxx" ## xxx gets replaced with HostIPStartFrom (180 + 1 after the first one)
+    HostIPStartFrom = 200
     HostNetmask = "255.255.255.0"
-    HostGateway = "172.16.0.1"
-    HostDNS = "172.18.0.2"
+    HostGateway = "192.168.10.254"
+    HostDNS = "8.8.8.8"
     HostDNSDomain = "ikt-fag.no"
     HostNTP = "0.no.pool.ntp.org"
-    HostPassword = "******************" ## The password you want the root user to get
-    HostSSH = "False"
-    HostHDDSizeGB = "300" ## HDD size
+    HostPassword = "Passord1" ## The password you want the root user to get
+    HostSSH = "True"
+    HostHDDSizeGB = "100" ## HDD size
     UserGroup = "Elever" ## This is an AD group, where each member gets their own ESXi host.
 }
+
+New-ESXiHost -Obj $Obj

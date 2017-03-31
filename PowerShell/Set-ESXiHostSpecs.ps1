@@ -4,7 +4,7 @@
 
     Connect-VIServer -Server $Server -Credential $Credential -Force | Out-Null
 
-    Get-VM | Where-Object { $_.Name -like "GROUP*" } | foreach {
+    Get-VM | Where-Object { $_.Name -like "Dummy*" } | foreach {
 
         Write-Host $_.Name
 
@@ -26,10 +26,8 @@
             Write-Host "Waiting for VM to power off."
         }
 
-        Set-VM `
-            -VM $_ `
-            -MemoryGB $RamGB `
-            -Confirm:$False
+        ## Set amount of ram
+        $_ | Set-VM -MemoryGB $RamGB -Confirm:$False
 
         ## We have to access the API, because PowerCli doesn't
         ## support setting the number of cores - only sockets..?
@@ -37,19 +35,22 @@
         $spec = New-Object -Type VMware.Vim.VirtualMachineConfigSpec -Property @{"NumCoresPerSocket" = $NumCores;"numCPUs" = $NumSockets}
         $_.ExtensionData.ReconfigVM_Task($spec)
 
+        ## Upgrade Virtual Machine hardware
+        $_ | Set-VM -Version v11 -Confirm:$False
+
+        ## Set the guest OS to ESXi 6.x instead of 5.x (After upgrading hardware)
+        $_ | Set-VM -GuestId vmkernel6Guest -Confirm:$False
+
+        ## Support for 64 bit guests on the virtual esxi hosts
+        ## https://communities.vmware.com/thread/511353?start=0&tstart=0
+        $spec = New-Object -Type VMware.Vim.VirtualMachineConfigSpec
+        $spec.nestedHVEnabled = $True
+        $_.ExtensionData.ReconfigVM($spec)
+
     }
 
     Disconnect-VIServer * -Confirm:$False | Out-Null
 }
 
 $Cred = Get-Credential
-$Hosts = @(
-    "172.16.0.165"
-    "172.16.0.164"
-    "172.16.0.163"
-    "172.16.0.162"
-    "172.16.0.161"
-    "172.16.0.166"
-)
-
-Set-ESXiHostSpecs -Server 192.168.0.9 -Credential $cred -RamGB 32 -NumSockets 8 -NumCores 8
+Set-ESXiHostSpecs -Server 192.168.0.9 -Credential $cred -RamGB 4 -NumSockets 1 -NumCores 4

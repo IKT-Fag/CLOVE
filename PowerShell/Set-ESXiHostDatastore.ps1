@@ -47,18 +47,34 @@
 
     process
     {
-        Connect-VIServer -Server $VIServer -Credential $Credential -Force -WarningAction SilentlyContinue 
+        $VIServer
+        Connect-VIServer -Server $VIServer -Credential $Credential -Force #-WarningAction SilentlyContinue 
+
+        Write-Host "Getting vmhost refrence.."
+        ## Get a refrence to the vmhost
         $VMHost = Get-VMHost -Name $VIServer
+
+        if ((Get-Datastore).Name -eq "VM STORAGE")
+        {
+            Write-Host "DS already exists, skipping host."
+            #return
+        }
 
         ## Add local disk as a datastore
         ## Select the HDD with the specified disk size ($SelectDiskSize)
-        $LocalDisk = (Get-ScsiLun | Where-Object { $_.CapacityGB -eq $SelectDiskSize }).CanonicalName
+        $LocalDisk = ((Get-ScsiLun -VmHost $VMHost | Where-Object { $_.CapacityGB -eq $SelectDiskSize }).CanonicalName) | Select-Object -First 1
         New-Datastore -VMHost $VIServer -Name $LocalDSName -Path $LocalDisk -Vmfs 
         
         ## Add iscsi datastore
-        Get-VMHostStorage -VMHost $VIServer | Set-VMHostStorage -SoftwareIScsiEnabled $True -Confirm:$False 
-        Start-Sleep -Seconds 2
+        #Get-VMHostStorage -VMHost $VIServer | Set-VMHostStorage -SoftwareIScsiEnabled $True -Confirm:$False 
+        #Start-Sleep -Seconds 2
 
+        if ((Get-Datastore).Name -eq "ISO")
+        {
+            Write-Host "ISO DS exist."
+            return
+        }
+        <#
         ## Remove storage
         Get-IScsiHbaTarget | Remove-IScsiHbaTarget -Confirm:$False
 
@@ -71,49 +87,32 @@
             -Type Static `
             -ChapType Prohibited
 
+        #>
         Get-VMHostStorage -RescanAllHba 
         Get-VMHostStorage -RescanVmfs 
 
-        Get-VirtualPortGroup -Name "VM Network" | `
-            Get-SecurityPolicy | `
-                Set-SecurityPolicy -MacChanges $True -AllowPromiscuous $True -ForgedTransmits $True
-
         Disconnect-VIServer * -Confirm:$False -Force
-        Start-Sleep -Seconds 2
+        
     }
 }
 
 $Cred = Get-Credential
 
-Set-ESXiHostDatastore `
-        -VIServer "172.16.0.165" `
-        -SelectDiskSize 300 `
-        -LocalDSName "VM STORAGE" `
-        -iScsiIp "192.168.0.15" `
-        -Port 3260 `
-        -TargetName "iqn.2008-08.com.starwindsoftware:vsan.ikt-fag.no-iso" `
-        -Credential $Cred
-
-<#
-$Hosts = @(
-    "172.16.0.165"
-    "172.16.0.164"
-    "172.16.0.163"
-    "172.16.0.162"
-    "172.16.0.161"
-    "172.16.0.166"
-)
+$Hosts = @()
+1..30 | % {
+    $ip = 200 + $_
+    $Hosts += "192.168.10.$ip"
+}
 
 $Hosts | % {
 
     Set-ESXiHostDatastore `
         -VIServer $_ `
-        -SelectDiskSize 300 `
-        -LocalDSName "VM STORAGE" `
+        -SelectDiskSize 100 `
+        -LocalDSName "Smith" `
         -iScsiIp "192.168.0.15" `
         -Port 3260 `
         -TargetName "iqn.2008-08.com.starwindsoftware:vsan.ikt-fag.no-iso" `
         -Credential $Cred
         #>
-#}
-#>
+}

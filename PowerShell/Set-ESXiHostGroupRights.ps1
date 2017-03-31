@@ -1,93 +1,124 @@
-﻿function Set-ESXiHostGroupRights($Cred)
+﻿Import-Module vmware.vimautomation.core, posh-ssh
+
+Disconnect-VIServer * -Confirm:$False -Force -ErrorAction SilentlyContinue -WarningAction SilentlyContinue
+
+$Domain = "IKT-FAG"
+$Cred = Get-Credential
+$CredDomain = Get-Credential
+
+function Send-Ping($IP)
 {
-    Import-Module VMWare.VimAutomation.Core, ActiveDirectory
-
-    $CSVPath = "D:\Google Drive\001 - IKT\00 - Bleiker Lærlingplass\IKT-Fag\Grupper tverrfaglig 2016-2.csv"
-    $CSV = Import-csv -Path $CSVPath -Delimiter ";" -Encoding UTF7 -Header ("Group", "Fullname")
-
-    $Obj = $Null
-    $Obj = [PSCustomObject]@{
-    }
-    $EsxiHosts = @(
-        #"172.16.0.165"
-        "172.16.0.164"
-        "172.16.0.163"
-        "172.16.0.162"
-        "172.16.0.161"
-        "172.16.0.166"
-    )
-    1..$EsxiHosts.Count | % {
-        $Obj | Add-Member -Name $_ -Value @() -MemberType NoteProperty
-    }
-
-    $Csv | % {
-        $Group = $_.Group
-        $Value = $_.Fullname
-
-        $Obj.$Group += $Value
-    }
-
-    1..$EsxiHosts.Count | % {
-        $esxi = $EsxiHosts[$_ - 1]
-        $Group = $Obj.$_
-
-        Connect-VIServer -Server $esxi -Credential $Cred
-
-        $Users = @()
-        $Group | % {
-            $User = (Get-ADUser -Filter "Name -eq '$_'" | Select-Object samaccountname).samaccountname
-            $Users += $User
-        }
-
-        $VMHost = Get-VMHost -Name (Get-VMHost).Name
-        $RetryCount = $Null
-        $Users | % {
-            $User = $_
-            Write-Host "In user loop"
-            $RetryCount = 0
-
-            $srv = Get-VMHostService | ? { $_.Key -eq "lwsmd" }
-            Restart-VMHostService -HostService $srv -Confirm:$False -ErrorAction Continue
-
-             while ((-not $VIAccount) -and ($RetryCount -le 6))
-            {
-                    Write-Host "Adding $_"
-                    $VIAccount = Get-VIAccount -Server $esxi -Domain "IKT-Fag" -User $User -ErrorAction Stop
-                    New-VIPermission -Principal $VIAccount -Role "Admin" -Entity $VMHost -ErrorAction Stop
-            <#
-                try 
-                {
-                    Write-Host "Adding $_"
-                    $VIAccount = Get-VIAccount -Server $esxi -Domain "IKT-Fag" -User $User -ErrorAction Stop
-                    New-VIPermission -Principal $VIAccount -Role "Admin" -Entity $VMHost -ErrorAction Stop
-                }
-                catch 
-                {
-                    Write-Warning "Permissions failed, trying again $RetryCount"
-                    $VIAccount = $Null
-                    Start-Sleep -Seconds 5
-                    $RetryCount += 1
-                }
-                #>
-            } #While
-        }
-        <#
-        
-        #>
-
-        #$esxi
-        #$Group
-        "----------------------"
-
-        Disconnect-VIServer * -Confirm:$False
-        
-    }
-
-
-
-
+    $Ping = New-Object System.Net.NetworkInformation.Ping
+    $Ping.send($IP)
 }
 
-$Cred = Get-Credential
+<#
+$Hosts = @{
+    "172.16.0.180" = @(
+        "16benvea",
+        "16garkyl",
+        "16dantra",
+        "16lucfje"
+    )
+    "172.16.0.181" = @(
+        "16alesyr",
+        "16olemol",
+        "16marvan",
+        "16tombra"
+    )
+    "172.16.0.182" = @(
+        "16martho",
+        "16stebor",
+        "16heleln"
+    )
+    "172.16.0.183" = @(
+        "16marell",
+        "16marhof"
+    )
+    "172.16.0.184" = @(
+        "16sigjak",
+        "16emigaa",
+        "16marfos",
+        "16marhol"
+    )
+    "172.16.0.185" = @(
+        "16odilei",
+        "16danlob"
+    )
+}
+#>
 
-Set-ESXiHostGroupRights -Cred $Cred
+$JsonFiles = Get-Childitem -Path "C:\Users\admin\Documents\GitHub\CLOVE\Json\Individuelle"
+foreach ($vHost in $JsonFiles)
+{
+    $Json = Get-Content -Path $vHost.FullName -raw | ConvertFrom-Json
+    $IP = $Json.VIServer
+    $UserName = $Json.User
+
+    $Response = Send-Ping -IP $IP
+    if ($Response.Status -eq "Failed" -or $Response.Status -eq "TimedOut")
+    {
+        Write-Output "Skipping server because of ping failure: $IP"
+        continue
+    }
+
+    Write-Output $IP
+    Connect-VIServer -Server $IP -Credential $cred
+
+    ## Start by leaving domain
+    ## I do this because domain integration regularly breaks in spectacular ways.
+    ## Trust me.
+    $VMHost = Get-VMHost -Server $IP
+    $Auth = $VMHost | Get-VMHostAuthentication
+    $Auth | Set-VMHostAuthentication -VMHostAuthentication -LeaveDomain -Confirm:$False -Force
+    $Auth | Set-VMHostAuthentication -LeaveDomain -Confirm:$False -Force
+    ## Now we need to SSH into the host to restart all of the services.
+    ## Don't ask me why.
+    $Command = "/usr/sbin/services.sh restart"
+    $Session = New-SSHSession -ComputerName $IP -AcceptKey -KeepAliveInterval 1 -Credential $cred
+    $Output = Invoke-SSHCommand -Command $Command -SSHSession $Session -EnsureConnection -TimeOut 120
+    Write-Output $Output
+
+    $VMHost = Get-VMHost -Server $IP
+    $Auth = $VMHost | Get-VMHostAuthentication
+    $Auth | Set-VMHostAuthentication -Domain $Domain -Credential $CredDomain -JoinDomain
+
+    ## Remove old permissions
+    $Permissions = Get-VIPermission -Server $IP
+    foreach ($User in $Permissions)
+    {
+        if ($User.Principal -like "*petter") { write "SKIP PETTER"; continue }
+        if ($User.Principal -like "*admins*") { write "SKIP ADMIN GROUP"; continue }
+        if ($User.Principal -like "IKT-FAG\*")
+        {
+            $User.Principal
+            Remove-VIPermission -Permission $User -Confirm:$False
+        }
+    }
+
+    $RetryCount = 0
+    while (!($VIAccount) -and ($RetryCount -le 15))
+    {
+        Write-Output "Current retry count: $RetryCount"
+        $VIAccount = Get-VIAccount -Server $IP -Domain $Domain -User $User
+        New-VIPermission -Principal $VIAccount -Entity $IP -Role "Admin" -Propagate -ErrorAction Continue
+        $RetryCount++
+        Start-Sleep -Seconds 2
+    }
+
+    <## Add new vipermissions
+    foreach ($User in $ESXi.Value)
+    {
+        $RetryCount = 0
+        while (!($VIAccount) -and ($RetryCount -le 10))
+        {
+            Write-Output "Current retry count: $RetryCount"
+            $VIAccount = Get-VIAccount -Server $IP -Domain $Domain -User $User
+            New-VIPermission -Principal $VIAccount -Entity $IP -Role "Admin" -Propagate -ErrorAction Continue
+            $RetryCount++
+            Start-Sleep -Seconds 5
+        }
+    }#>
+
+    Disconnect-VIServer -Server $IP -Confirm:$False
+}
