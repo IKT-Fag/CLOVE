@@ -15,7 +15,7 @@ from devices import *
 ## Args
 #sys.argv[1] ## First argument, folder to find JSON-files
 ## Temp for easier testing:
-jsonFolderImport = 'C:\\Users\\admin\\Documents\\GitHub\\Create-Virtual-ESXi-Hosts\\Json\\GROUPS'
+jsonFolderImport = 'C:\\Users\\admin\\Documents\\GitHub\\CLOVE\\Json'
 
 ## Loop through all of the json files in jsonFolder and
 ## add them to a list (vlans) to make the data easy to work with.
@@ -38,8 +38,7 @@ def main():
     for vlan in vlans:
         print "Now configuring vlan for: " + vlan['User']
         
-        for device in devicesList:
-
+        for device in devicesList
             ## KobberSwitch
             if device['ip'] == '192.168.0.102':
                 print "Current device: " + device['ip']
@@ -58,6 +57,9 @@ def main():
                 ]
                 output = con.send_config_set(commands)
                 print "Configured: " + device['ip']
+
+                con.send_command('write memory')
+
                 con.disconnect()
             
             ## Core01, Core02
@@ -76,6 +78,9 @@ def main():
                 ]
                 output = con.send_config_set(commands)
                 print "Configured: " + device['ip']
+
+                con.send_command('copy running-config startup-config')
+
                 con.disconnect()
             
             ## ASA
@@ -87,8 +92,12 @@ def main():
                 commands = [routeCommand]
                 output = con.send_config_set(commands)
                 print "Configured: " + device['ip']
+
+                con.send_command('write memory')
+
                 con.disconnect()
             else:
                 print "Unknown device: " + device['ip']
+
 
 main()

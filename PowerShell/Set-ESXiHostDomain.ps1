@@ -43,6 +43,8 @@ function Set-ESXiHostDomain
 
     process
     {
+        $ProgressPreference = "SilentlyContinue"
+
         Connect-VIServer -Server $VIServer -User $VIUser -Password $VIPassword `
             -Force -WarningAction SilentlyContinue | Out-Null
 
@@ -73,6 +75,12 @@ function Set-ESXiHostDomain
                 {
                     Write-Host "$VIServer already joined to domain" -ForegroundColor Green
                     $Succeed = $True
+                }
+                elseif($Error[0].Exception.Message -like "*Errors in Active Directory operations.*")
+                {
+                    Write "Errors in ad....."
+                    Start-Sleep -Seconds 5
+                    $Succeed = $False
                 }
                 else
                 {
@@ -119,33 +127,40 @@ function Set-ESXiHostDomain
         }
     }
 }
+<#
 Set-ESXiHostDomain `
     -VIServer "172.16.0.165" `
     -VIUser "root" `
-    -VIPassword "root-password-for-vhost" `
+    -VIPassword "******************" `
     -Domain "IKT-Fag.no" `
-    -ADUser "Petter" <# This user is added as an approved user to login to host #> `
+    -ADUser "Petter" # This user is added as an approved user to login to host`
     -Credential $Cred ## AD credentials for authenticating domain join
+#>
 
-<#
 $Cred = Get-Credential
 $Hosts = @(
-    "172.16.0.165"
-    "172.16.0.164"
-    "172.16.0.163"
-    "172.16.0.162"
-    "172.16.0.161"
-    "172.16.0.166"
+    "172.16.0.180"
+    "172.16.0.181"
+    "172.16.0.182"
+    "172.16.0.183"
+    "172.16.0.184"
+    "172.16.0.185"
 )
-
+connect-viserver 192.168.0.9 -Credential $cred
 $Hosts | % {
+    $_
+    $vm =  Get-VM -Name "*$_"
+    $vm | Stop-VM -kill -confirm:$False
+    $vm | Start-VM
+
+    <#
     Set-ESXiHostDomain `
         -VIServer $_ `
         -VIUser root `
-        -VIPassword ***`
+        -VIPassword "******************" `
         -Domain "IKT-Fag.no" `
-        -ADUser "harald" `
+        -ADUser "Petter" `
         -Credential $Cred
+    #>
 }
 
-#>

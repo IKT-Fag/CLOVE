@@ -54,3 +54,7 @@ json/
 *.pyc
 *.crdownload
 *.ova
+*.xlsx
+
+# Custom
+ignore/

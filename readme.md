@@ -28,3 +28,5 @@ I'm working on this, but if you still want to use these scripts, start with `New
 *If you want to automate Cisco config*
 * [Python 2.7.x](https://www.python.org/downloads/)
 * [Netmiko](https://github.com/ktbyers/netmiko) (pip install netmiko)
+
+Additionally, `Restart-Services.ps1` requires the Posh-SSH module.

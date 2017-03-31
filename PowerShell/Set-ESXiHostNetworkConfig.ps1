@@ -30,6 +30,6 @@ function Set-ESXiHostNetworkConfig($JsonPath, $Credential)
 }
 
 ## Temp for testing
-$Json = "C:\Users\pette\Documents\GitHub\Create-Virtual-ESXi-Hosts\Json\GROUPS"
+$Json = "C:\Users\admin\Documents\GitHub\CLOVE\Json"
 $Cred = Get-Credential
 Set-ESXiHostNetworkConfig -JsonPath $Json -Credential $Cred

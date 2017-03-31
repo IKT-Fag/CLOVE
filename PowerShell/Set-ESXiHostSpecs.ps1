@@ -4,7 +4,7 @@
 
     Connect-VIServer -Server $Server -Credential $Credential -Force | Out-Null
 
-    Get-VM | Where-Object { $_.Name -like "GROUP*" } | foreach {
+    Get-VM | Where-Object { $_.Name -like "Dummy*" } | foreach {
 
         Write-Host $_.Name
 
@@ -39,7 +39,7 @@
         $_ | Set-VM -Version v11 -Confirm:$False
 
         ## Set the guest OS to ESXi 6.x instead of 5.x (After upgrading hardware)
-        $_ | Set-VM -GuestId vmkernel6Guest
+        $_ | Set-VM -GuestId vmkernel6Guest -Confirm:$False
 
         ## Support for 64 bit guests on the virtual esxi hosts
         ## https://communities.vmware.com/thread/511353?start=0&tstart=0
@@ -53,4 +53,4 @@
 }
 
 $Cred = Get-Credential
-Set-ESXiHostSpecs -Server 192.168.0.9 -Credential $cred -RamGB 32 -NumSockets 8 -NumCores 8
+Set-ESXiHostSpecs -Server 192.168.0.9 -Credential $cred -RamGB 4 -NumSockets 1 -NumCores 4
