@@ -35,11 +35,12 @@ $Obj = [PSCustomObject]@{
     vCenterNetwork = "Labnett"     ## The vNIC that gets assigned to the vHosts
     vCenterVMHost = "192.168.0.20" ## VMHost to host your vm's
     ## Ovf File downloaded from vGhetto's site: http://bit.do/VirtualAppliance
-    OvfFile = "C:\Users\admin\Documents\GitHub\CLOVE\ignore\Nested_ESXi6.x_Appliance_Template_v5.ova"
+    OvfFile = "C:\Users\admin\Documents\GitHub\CLOVE\ignore\Nested_ESXi6.0u3_Appliance_Template_v1.0.ova"
     HostIP = "192.168.10.xxx"      ## xxx gets replaced with HostIPStartFrom (180 + 1 after the first one)
     HostIPStartFrom = 200          ## See above ^
     HostNetmask = "255.255.255.0" 
     HostGateway = "192.168.10.254"
+    HostVlan = 300                 ## Vlan for host management interface. Set to $Null for default
     HostDNS = "8.8.8.8"
     HostDNSDomain = "ikt-fag.no"
     HostNTP = "0.no.pool.ntp.org"
