@@ -4,7 +4,7 @@
 
     Connect-VIServer -Server $Server -Credential $Credential -Force | Out-Null
 
-    Get-VM | Where-Object { $_.Name -like "Dummy*" } | foreach {
+    Get-VM | Where-Object { $_.Name -like "Gruppe-*" } | ForEach-Object {
 
         Write-Host $_.Name
 
@@ -32,7 +32,7 @@
         ## We have to access the API, because PowerCli doesn't
         ## support setting the number of cores - only sockets..?
         ## https://communities.vmware.com/thread/342422
-        $spec = New-Object -Type VMware.Vim.VirtualMachineConfigSpec -Property @{"NumCoresPerSocket" = $NumCores;"numCPUs" = $NumSockets}
+        $spec = New-Object -Type VMware.Vim.VirtualMachineConfigSpec -Property @{"NumCoresPerSocket" = $NumCores; "numCPUs" = $NumSockets}
         $_.ExtensionData.ReconfigVM_Task($spec)
 
         ## Upgrade Virtual Machine hardware
@@ -47,10 +47,15 @@
         $spec.nestedHVEnabled = $True
         $_.ExtensionData.ReconfigVM($spec)
 
+        Start-Sleep -Seconds 2
+        $_ | Start-VM
+
     }
 
     Disconnect-VIServer * -Confirm:$False | Out-Null
 }
 
 $Cred = Get-Credential
-Set-ESXiHostSpecs -Server 192.168.0.9 -Credential $cred -RamGB 4 -NumSockets 1 -NumCores 4
+Set-ESXiHostSpecs -Server 192.168.0.9 -Credential $cred -RamGB 16 -NumSockets 1 -NumCores 4
+
+

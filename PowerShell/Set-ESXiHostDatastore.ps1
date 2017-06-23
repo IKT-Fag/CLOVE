@@ -36,13 +36,13 @@
         [Parameter(
             Mandatory = $True
         )]
-        $Credential
+        [PSCredential] $Credential
     )
 
     begin
     {
         Import-Module VMWare.VimAutomation.Core
-        $ErrorActionPreference = "Continue"
+        #$ErrorActionPreference = "Continue"
     }
 
     process
@@ -65,16 +65,16 @@
         $LocalDisk = ((Get-ScsiLun -VmHost $VMHost | Where-Object { $_.CapacityGB -eq $SelectDiskSize }).CanonicalName) | Select-Object -First 1
         New-Datastore -VMHost $VIServer -Name $LocalDSName -Path $LocalDisk -Vmfs 
         
-        ## Add iscsi datastore
-        #Get-VMHostStorage -VMHost $VIServer | Set-VMHostStorage -SoftwareIScsiEnabled $True -Confirm:$False 
-        #Start-Sleep -Seconds 2
+        ## Enable iSCSI
+        Get-VMHostStorage -VMHost $VIServer | Set-VMHostStorage -SoftwareIScsiEnabled $True -Confirm:$False 
+        Start-Sleep -Seconds 2
 
         if ((Get-Datastore).Name -eq "ISO")
         {
             Write-Host "ISO DS exist."
             return
         }
-        <#
+        
         ## Remove storage
         Get-IScsiHbaTarget | Remove-IScsiHbaTarget -Confirm:$False
 
@@ -87,7 +87,7 @@
             -Type Static `
             -ChapType Prohibited
 
-        #>
+        
         Get-VMHostStorage -RescanAllHba 
         Get-VMHostStorage -RescanVmfs 
 
@@ -99,20 +99,18 @@
 $Cred = Get-Credential
 
 $Hosts = @()
-1..30 | % {
-    $ip = 200 + $_
-    $Hosts += "192.168.10.$ip"
+0..9 | % {
+    $ip = 150 + $_
+    $Hosts += "172.16.0.$ip"
 }
 
 $Hosts | % {
-
     Set-ESXiHostDatastore `
         -VIServer $_ `
-        -SelectDiskSize 100 `
-        -LocalDSName "Smith" `
+        -SelectDiskSize 250 `
+        -LocalDSName "VM Storage" `
         -iScsiIp "192.168.0.15" `
         -Port 3260 `
         -TargetName "iqn.2008-08.com.starwindsoftware:vsan.ikt-fag.no-iso" `
         -Credential $Cred
-        #>
 }

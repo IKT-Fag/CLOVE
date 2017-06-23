@@ -1,7 +1,6 @@
 ﻿## Used for deploying VM's to the virtual ESXi hosts.
 ## We are using in together with "esxi-perf-test" (@IKT-Fag Github) to test DS IOPS.
-
-$vHostFiles = Get-ChildItem -Path "C:\Users\admin\Documents\GitHub\CLOVE\Json\Dummies"
+$vHostFiles = Get-ChildItem -Path "C:\Users\admin\Documents\GitHub\CLOVE\Json\GROUPS"
 $JsonObjects = Get-Content $vHostFiles.FullName -raw
 
 if (!($Credential))
@@ -18,11 +17,14 @@ foreach ($vHost in $JsonObjects)
 
         $vHost = $args[0]
         $Credential = $args[1]
-        $ServerName = "test002"
+        $ServerName = "Server 2016"
+
+        ## temp to reduce load on server / DS
+        Start-Sleep -Seconds (Get-Random -Minimum 1 -Maximum 20)
 
         Import-Module VMware.VimAutomation.Core
 
-        $SourceOVA = "C:\Users\Petter\Desktop\iops\testDeploy.ova"
+        $SourceOVA = "C:\Users\Petter\Desktop\Clean Server.ova"
 
         $Json = $USING:vHost
 
@@ -62,10 +64,9 @@ foreach ($vHost in $JsonObjects)
             return
         }
 
-        $Datastore = Get-Datastore -Server $IP -Name "Smith"
+        $Datastore = Get-Datastore -Server $IP -Name "VM Storage"
         Import-VApp -Source $SourceOVA -Name $ServerName -Server $IP -VMHost $IP `
             -Datastore $Datastore -DiskStorageFormat Thin -ErrorAction Stop
-
 
         Disconnect-VIServer -Server $IP -Force -Confirm:$False
     }

@@ -61,7 +61,7 @@ function Set-ESXiHostDomain
             {
                 ## Change auth mode to domain
                 Get-VMHostAuthentication -VMHost $VMHost `
-                | Set-VMHostAuthentication `
+                    | Set-VMHostAuthentication `
                     -Domain $Domain `
                     -Credential $Credential `
                     -JoinDomain:$True `
@@ -71,12 +71,12 @@ function Set-ESXiHostDomain
             }
             catch
             {
-                if($Error[0].Exception.Message -like "*already joined to domain*")
+                if ($Error[0].Exception.Message -like "*already joined to domain*")
                 {
                     Write-Host "$VIServer already joined to domain" -ForegroundColor Green
                     $Succeed = $True
                 }
-                elseif($Error[0].Exception.Message -like "*Errors in Active Directory operations.*")
+                elseif ($Error[0].Exception.Message -like "*Errors in Active Directory operations.*")
                 {
                     Write "Errors in ad....."
                     Start-Sleep -Seconds 5
@@ -123,44 +123,37 @@ function Set-ESXiHostDomain
         ## Return this
         [PSCustomObject]@{
             VIserver = $VIServer
-            Domain = $Domain
+            Domain   = $Domain
         }
     }
 }
-<#
-Set-ESXiHostDomain `
-    -VIServer "172.16.0.165" `
-    -VIUser "root" `
-    -VIPassword "******************" `
-    -Domain "IKT-Fag.no" `
-    -ADUser "Petter" # This user is added as an approved user to login to host`
-    -Credential $Cred ## AD credentials for authenticating domain join
-#>
 
-$Cred = Get-Credential
-$Hosts = @(
-    "172.16.0.180"
-    "172.16.0.181"
-    "172.16.0.182"
-    "172.16.0.183"
-    "172.16.0.184"
-    "172.16.0.185"
-)
+$Hosts = @(0..8 | % {
+        "172.16.0.$($_ + 150)"
+    })
+<#
 connect-viserver 192.168.0.9 -Credential $cred
 $Hosts | % {
     $_
     $vm =  Get-VM -Name "*$_"
     $vm | Stop-VM -kill -confirm:$False
     $vm | Start-VM
+}
+Disconnect-VIServer * -Confirm:$False
+#>
+#Start-Sleep -Seconds 240
 
-    <#
+## NOTE:
+## Don't write the username like "DOMAIN\Username".
+## Just use "Username"
+$Cred = Get-Credential
+$Hosts | % {
     Set-ESXiHostDomain `
         -VIServer $_ `
         -VIUser root `
-        -VIPassword "******************" `
+        -VIPassword "Passord1" `
         -Domain "IKT-Fag.no" `
         -ADUser "Petter" `
         -Credential $Cred
-    #>
 }
 
