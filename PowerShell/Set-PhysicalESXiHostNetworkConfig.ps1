@@ -6,13 +6,20 @@ function Set-PhysicalESXiHostNetworkConfig($VIServer, $JsonPath, $Credential, $v
 
     ## Create virtual portgroup
     ## Set the security policy to allow promiscuous etc.
-    Get-VirtualSwitch | New-VirtualPortgroup -Name $vNicName -VLanId 4095 -Confirm:$False |
-        Get-SecurityPolicy |
+    try
+    {
+        Get-VirtualSwitch | New-VirtualPortgroup -Name $vNicName -VLanId 4095 -Confirm:$False -ErrorAction Stop |
+            Get-SecurityPolicy |
             Set-SecurityPolicy `
-              -AllowPromiscuous $True `
-              -ForgedTransmits $True `
-              -MacChanges $True `
-              -Confirm:$False
+            -AllowPromiscuous $True `
+            -ForgedTransmits $True `
+            -MacChanges $True `
+            -Confirm:$False
+    }
+    catch
+    {
+        Write-Verbose "Port group probably already exists."
+    }
 
     ## Here we import the json files that were created during the creation of the 
     ## virtual ESXi hosts. We need these to know which hosts to add the new vNic to.
@@ -43,7 +50,7 @@ function Set-PhysicalESXiHostNetworkConfig($VIServer, $JsonPath, $Credential, $v
 @("192.168.0.20") | % {
     Set-PhysicalESXiHostNetworkConfig `
         -VIServer $PSItem `
-        -JsonPath "C:\Users\pette\Documents\GitHub\Create-Virtual-ESXi-Hosts\Json\GROUPS" `
+        -JsonPath "C:\Users\admin\Documents\GitHub\CLOVE\Json\GROUPS" `
         -vNicName "TrunkNic" `
         -RemoveAllOtherNics $True `
         -Credential (Get-Credential)

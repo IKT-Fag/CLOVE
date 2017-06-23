@@ -5,35 +5,35 @@ Rom150 = {
 	'device_type': 'cisco_ios',
 	'ip': '192.168.0.150',
 	'username': 'admin',
-	'password': 'Your-device-password-here',
+	'password': 'network',
 }
 
 KobberSwitch = {
 	'device_type': 'cisco_ios',
 	'ip': '192.168.0.102',
 	'username': 'admin',
-	'password': 'Your-device-password-here',
+	'password': 'network',
 }
 
 Core01 = {
 	'device_type': 'cisco_nxos',
 	'ip': '192.168.0.100',
 	'username': 'admin',
-	'password': 'Your-device-password-here',
+	'password': 'network',
 }
 
 Core02 = {
 	'device_type': 'cisco_nxos',
 	'ip': '192.168.0.101',
 	'username': 'admin',
-	'password': 'Your-device-password-here',
+	'password': 'network',
 }
 
 ASA = {
 	'device_type': 'cisco_asa',
 	'ip': '192.168.0.1',
 	'username': 'admin',
-	'password': 'Your-device-password-here',
+	'password': 'firewall',
 	'port': '22',
 	'secret': ''
 }

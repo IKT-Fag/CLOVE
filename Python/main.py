@@ -15,7 +15,7 @@ from devices import *
 ## Args
 #sys.argv[1] ## First argument, folder to find JSON-files
 ## Temp for easier testing:
-jsonFolderImport = 'C:\\Users\\admin\\Documents\\GitHub\\CLOVE\\Json'
+jsonFolderImport = 'C:\\Users\\admin\\Documents\\GitHub\\CLOVE\\Json\\Eksamen'
 
 ## Loop through all of the json files in jsonFolder and
 ## add them to a list (vlans) to make the data easy to work with.
@@ -36,27 +36,29 @@ def main():
     vlans = getJson(jsonFolderImport)
 
     for vlan in vlans:
-        print "Now configuring vlan for: " + vlan['User']
-        
-        for device in devicesList
+        print ("Current user: " + str(vlan['User']))
+        for device in devicesList:
             ## KobberSwitch
             if device['ip'] == '192.168.0.102':
-                print "Current device: " + device['ip']
+                print ("Current device: " + device['ip'])
                 con = ConnectHandler(**device)
+
                 vlanDat = "vlan " + str(vlan['Vlan'])
                 vlanDatName = "name " + vlan['User']
                 vlanInt = "interface vlan " + str(vlan['Vlan'])
                 intIpConfig = "ip address " + vlan['Subnet'] + " " + vlan['Netmask']
+                description = vlan['Description']
 
                 commands = [
                     vlanDat,
                     vlanDatName,
                     vlanInt,
                     intIpConfig,
+                    description,
                     "no shutdown"
                 ]
                 output = con.send_config_set(commands)
-                print "Configured: " + device['ip']
+                print ("Configured: " + device['ip'])
 
                 con.send_command('write memory')
 
@@ -64,7 +66,7 @@ def main():
             
             ## Core01, Core02
             elif device['ip'] == '192.168.0.100' or device['ip'] == '192.168.0.101':
-                print "Current device: " + device['ip']
+                print ("Current device: " + device['ip'])
                 con = ConnectHandler(**device)
                 vlanDat = "vlan " + str(vlan['Vlan'])
                 vlanDatName = "name " + vlan['User']
@@ -77,7 +79,7 @@ def main():
                     "no shutdown"
                 ]
                 output = con.send_config_set(commands)
-                print "Configured: " + device['ip']
+                print ("Configured: " + device['ip'])
 
                 con.send_command('copy running-config startup-config')
 
@@ -85,19 +87,19 @@ def main():
             
             ## ASA
             elif device['ip'] == '192.168.0.1':
-                print "Current device: " + device['ip']
+                print ("Current device: " + device['ip'])
                 con = ConnectHandler(**device)
                 routeCommand = "route inside " + vlan['Subnet'] + " " + vlan['Netmask'] + " " + "192.168.0.102"
 
                 commands = [routeCommand]
                 output = con.send_config_set(commands)
-                print "Configured: " + device['ip']
+                print ("Configured: " + device['ip'])
 
                 con.send_command('write memory')
 
                 con.disconnect()
             else:
-                print "Unknown device: " + device['ip']
+                print ("Unknown device: " + device['ip'])
 
 
 main()

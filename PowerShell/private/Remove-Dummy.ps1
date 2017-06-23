@@ -1,7 +1,7 @@
 ## Used for removing dummy-VM's from virtual ESXi hosts.
 ## We are using in together with "esxi-perf-test" (@IKT-Fag Github) to test DS IOPS.
 
-$vHostFiles = Get-ChildItem -Path "C:\Users\admin\Documents\GitHub\CLOVE\Json\Dummies"
+$vHostFiles = Get-ChildItem -Path "C:\Users\admin\Documents\GitHub\CLOVE\Json\GROUPS"
 $JsonObjects = Get-Content $vHostFiles.FullName -raw
 
 if (!($Credential))

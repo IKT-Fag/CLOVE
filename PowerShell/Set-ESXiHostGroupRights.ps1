@@ -74,10 +74,10 @@ foreach ($vHost in $JsonFiles)
     $Auth | Set-VMHostAuthentication -LeaveDomain -Confirm:$False -Force
     ## Now we need to SSH into the host to restart all of the services.
     ## Don't ask me why.
-    $Command = "/usr/sbin/services.sh restart"
-    $Session = New-SSHSession -ComputerName $IP -AcceptKey -KeepAliveInterval 1 -Credential $cred
-    $Output = Invoke-SSHCommand -Command $Command -SSHSession $Session -EnsureConnection -TimeOut 120
-    Write-Output $Output
+    #$Command = "/usr/sbin/services.sh restart"
+    #$Session = New-SSHSession -ComputerName $IP -AcceptKey -KeepAliveInterval 1 -Credential $cred
+    #$Output = Invoke-SSHCommand -Command $Command -SSHSession $Session -EnsureConnection -TimeOut 120
+    #Write-Output $Output
 
     $VMHost = Get-VMHost -Server $IP
     $Auth = $VMHost | Get-VMHostAuthentication
