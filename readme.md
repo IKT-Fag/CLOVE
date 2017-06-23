@@ -24,6 +24,7 @@ I'm working on this, but if you still want to use these scripts, start with `New
 * vCenter
 * [PowerCLI](https://www.vmware.com/support/developer/PowerCLI/)
 * ActiveDirectory module
+* ESXi 6.0u3
 
 *If you want to automate Cisco config*
 * [Python 2.7.x](https://www.python.org/downloads/)
