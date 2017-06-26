@@ -15,7 +15,7 @@ There is also a Python part, which I used for automating creation of vlans for e
 
 ## How to use
 
-I'm working on this, but if you still want to use these scripts, start with `New-ESXiHost.ps1`. At the bottom of the file you'll find an object, and you can fill in your own info there.
+[Read the docs here](https://github.com/IKT-Fag/CLOVE/tree/master/Docs)
 
 ## Requirements
 
@@ -24,7 +24,7 @@ I'm working on this, but if you still want to use these scripts, start with `New
 * vCenter
 * [PowerCLI](https://www.vmware.com/support/developer/PowerCLI/)
 * ActiveDirectory module
-* ESXi 6.0u3
+* ESXi 6.0u3 image
 
 *If you want to automate Cisco config*
 * [Python 2.7.x](https://www.python.org/downloads/)
