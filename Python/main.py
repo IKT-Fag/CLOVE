@@ -15,7 +15,7 @@ from devices import *
 ## Args
 #sys.argv[1] ## First argument, folder to find JSON-files
 ## Temp for easier testing:
-jsonFolderImport = 'C:\\Users\\admin\\Documents\\GitHub\\CLOVE\\Json\\Eksamen'
+jsonFolderImport = 'C:\\Users\\admin\\Documents\\GitHub\\CLOVE\\Json'
 
 ## Loop through all of the json files in jsonFolder and
 ## add them to a list (vlans) to make the data easy to work with.
@@ -44,11 +44,11 @@ def main():
                 con = ConnectHandler(**device)
 
                 vlanDat = "vlan " + str(vlan['Vlan'])
-                vlanDatName = "name " + vlan['User']
+                vlanDatName = "name " + vlan['Name'] 
                 vlanInt = "interface vlan " + str(vlan['Vlan'])
                 intIpConfig = "ip address " + vlan['Subnet'] + " " + vlan['Netmask']
                 description = vlan['Description']
-
+              
                 commands = [
                     vlanDat,
                     vlanDatName,
@@ -57,6 +57,9 @@ def main():
                     description,
                     "no shutdown"
                 ]
+
+        
+
                 output = con.send_config_set(commands)
                 print ("Configured: " + device['ip'])
 
@@ -69,7 +72,8 @@ def main():
                 print ("Current device: " + device['ip'])
                 con = ConnectHandler(**device)
                 vlanDat = "vlan " + str(vlan['Vlan'])
-                vlanDatName = "name " + vlan['User']
+                vlanDatName = "name " + vlan['User'] + "-" + vlan['VIServer']
+                
                 vlanInt = "interface vlan " + str(vlan['Vlan'])
 
                 commands = [
@@ -84,22 +88,7 @@ def main():
                 con.send_command('copy running-config startup-config')
 
                 con.disconnect()
-            
-            ## ASA
-            elif device['ip'] == '192.168.0.1':
-                print ("Current device: " + device['ip'])
-                con = ConnectHandler(**device)
-                routeCommand = "route inside " + vlan['Subnet'] + " " + vlan['Netmask'] + " " + "192.168.0.102"
 
-                commands = [routeCommand]
-                output = con.send_config_set(commands)
-                print ("Configured: " + device['ip'])
-
-                con.send_command('write memory')
-
-                con.disconnect()
-            else:
-                print ("Unknown device: " + device['ip'])
 
 
 main()
