@@ -8,7 +8,7 @@ function Set-PhysicalESXiHostNetworkConfig($VIServer, $JsonPath, $Credential, $v
     ## Set the security policy to allow promiscuous etc.
     try
     {
-        Get-VirtualSwitch | New-VirtualPortgroup -Name $vNicName -VLanId 4095 -Confirm:$False -ErrorAction Stop |
+        Get-VirtualSwitch | New-VirtualPortgroup -Name $vNicName -VLanId 310 -Confirm:$False -ErrorAction Stop |
             Get-SecurityPolicy |
             Set-SecurityPolicy `
             -AllowPromiscuous $True `
@@ -41,17 +41,19 @@ function Set-PhysicalESXiHostNetworkConfig($VIServer, $JsonPath, $Credential, $v
 
         ## Here we add the network adapter to each of the VM's loaded from json above.
         $VM | New-NetworkAdapter -NetworkName $vNicName |
-            Set-NetworkAdapter -StartConnected $True -Confirm:$False
+        Set-NetworkAdapter -StartConnected $True -Confirm:$False | Set-NetworkAdapter -Type Vmxnet3 -Confirm:$False
+
+        $VM | Start-VM
     }
 
     Disconnect-VIServer * -Confirm:$False
 }
 
-@("192.168.0.20") | % {
+@("192.168.0.20, 192.168.0.21") | % {
     Set-PhysicalESXiHostNetworkConfig `
         -VIServer $PSItem `
         -JsonPath "C:\Users\admin\Documents\GitHub\CLOVE\Json\GROUPS" `
-        -vNicName "TrunkNic" `
+        -vNicName "ElevESXiMGTNetwork" `
         -RemoveAllOtherNics $True `
         -Credential (Get-Credential)
 }

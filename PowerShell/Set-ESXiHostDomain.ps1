@@ -129,7 +129,7 @@ function Set-ESXiHostDomain
 }
 
 $Hosts = @(0..8 | % {
-        "172.16.0.$($_ + 150)"
+        "172.20.0.$($_ + 10)"
     })
 <#
 connect-viserver 192.168.0.9 -Credential $cred
@@ -153,7 +153,7 @@ $Hosts | % {
         -VIUser root `
         -VIPassword "Passord1" `
         -Domain "IKT-Fag.no" `
-        -ADUser "Petter" `
+        -ADUser "Adrian" `
         -Credential $Cred
 }
 

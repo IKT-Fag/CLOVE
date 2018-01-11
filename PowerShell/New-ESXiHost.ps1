@@ -60,7 +60,7 @@ function New-ESXiHost
         $Users = 1..9 | % {
             [PSCustomObject]@{
                 Group          = $_
-                SamAccountName = "Gruppe-$_"
+                SamAccountName = "$_"
             }
         }
 
@@ -129,7 +129,7 @@ function New-ESXiHost
                 Netmask     = $Obj.HostNetmask
                 Wildcard    = (Convert-NetmaskToWildcard -Netmask $Obj.HostNetmask).Wildcard
                 HostSizeGB  = $Obj.HostHDDSizeGB
-                Description = "Gruppe-$num"
+                Description = "$VMName"
             }
             $ObjCollection += $VMObject
 
@@ -170,14 +170,14 @@ $Obj = [PSCustomObject]@{
     vCenterCred      = $Cred 
     vCenterCluster   = "Elev-VM" 
     vCenterDatastore = "Logos" ## The datastore you want the vHosts to be stored on
-    vCenterNetwork   = "TrunkNic" ## I use a trunk NIC for seperating vHosts, but you can use w/e you want
+    vCenterNetwork   = "ElevESXiMGTNetwork" ## I use a trunk NIC for seperating vHosts, but you can use w/e you want
     vCenterVMHost    = "192.168.0.21" ## This would be two eventually
     OvfFile          = "C:\Users\admin\Documents\GitHub\CLOVE\ignore\Nested_ESXi6.0u3_Appliance_Template_v1.0.ova"
-    HostIP           = "172.16.0.xxx" ## xxx gets replaced with HostIPStartFrom (180 + 1 after the first one)
-    HostIPStartFrom  = 150
+    HostIP           = "172.20.0.xxx" ## xxx gets replaced with HostIPStartFrom (180 + 1 after the first one)
+    HostIPStartFrom  = 10
     HostNetmask      = "255.255.255.0"
-    HostGateway      = "172.16.0.1"
-    HostVlan         = 300 ## Vlan for host management interface. Set to $Null for default
+    HostGateway      = "172.20.0.1"
+    HostVlan         = $null ## Vlan for host management interface. Set to $Null for default
     HostDNS          = "172.18.0.2"
     HostDNSDomain    = "ikt-fag.no"
     HostNTP          = "0.no.pool.ntp.org"

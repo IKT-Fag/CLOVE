@@ -19,6 +19,9 @@ function Set-ESXiHostNetworkConfig($JsonPath, $Credential)
 
         ## Create virtual portgroup
         ## Set the security policy to allow promiscuous etc.
+
+        New-VirtualSwitch -Name vSwitch1 -Nic vmnic1
+
         Get-VirtualSwitch | 
             New-VirtualPortgroup -Name $Json.Subnet -VLanId $Json.Vlan -Confirm:$False |
             Get-SecurityPolicy |

@@ -2,7 +2,7 @@
 {
     Import-Module VMWare.VimAutomation.Core
 
-    Connect-VIServer -Server $Server -Credential $Credential -Force | Out-Null
+    Connect-VIServer -Server $Server <#-Credential $Credential#> -Force | Out-Null
 
     Get-VM | Where-Object { $_.Name -like "Gruppe-*" } | ForEach-Object {
 
@@ -55,7 +55,7 @@
     Disconnect-VIServer * -Confirm:$False | Out-Null
 }
 
-$Cred = Get-Credential
-Set-ESXiHostSpecs -Server 192.168.0.9 -Credential $cred -RamGB 16 -NumSockets 1 -NumCores 4
+#$Cred = Get-Credential
+Set-ESXiHostSpecs -Server 192.168.0.9 <#-Credential $cred#> -RamGB 16 -NumSockets 1 -NumCores 4
 
 

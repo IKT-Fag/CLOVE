@@ -100,8 +100,8 @@ $Cred = Get-Credential
 
 $Hosts = @()
 0..9 | % {
-    $ip = 150 + $_
-    $Hosts += "172.16.0.$ip"
+    $ip = 10 + $_
+    $Hosts += "172.20.0.$ip"
 }
 
 $Hosts | % {
@@ -111,6 +111,6 @@ $Hosts | % {
         -LocalDSName "VM Storage" `
         -iScsiIp "192.168.0.15" `
         -Port 3260 `
-        -TargetName "iqn.2008-08.com.starwindsoftware:vsan.ikt-fag.no-iso" `
+        -TargetName "iqn.2005-10.org.freenas.ctl:iso" `
         -Credential $Cred
 }

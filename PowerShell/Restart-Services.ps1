@@ -10,7 +10,7 @@ Disconnect-VIServer * -Confirm:$False -Force -ErrorAction SilentlyContinue `
 
 $Domain = "IKT-FAG"
 $Cred = Get-Credential
-$JsonFiles = Get-Childitem -Path "C:\Users\admin\Documents\GitHub\CLOVE\Json\Eksamen"
+$JsonFiles = Get-Childitem -Path "C:\Users\admin\Documents\GitHub\CLOVE\Json"
 
 function Send-Ping($IP)
 {
