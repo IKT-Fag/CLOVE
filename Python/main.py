@@ -47,6 +47,7 @@ def main():
                 vlanDatName = "name " + vlan['Name'] 
                 vlanInt = "interface vlan " + str(vlan['Vlan'])
                 intIpConfig = "ip address " + vlan['Subnet'] + " " + vlan['Netmask']
+                pbr = "ip policy route-map 10-net"
                 description = vlan['Description']
               
                 commands = [
@@ -55,6 +56,7 @@ def main():
                     vlanInt,
                     intIpConfig,
                     description,
+                    pbr,
                     "no shutdown"
                 ]
 
