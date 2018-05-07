@@ -21,6 +21,8 @@ You should now have virtual ESXi-hosts! You will probably experience problems wi
 
 ## New-ESXiHost.ps1
 
+Download the Appliance Template here: https://download3.vmware.com/software/vmw-tools/nested-esxi/Nested_ESXi6.0u3_Appliance_Template_v1.0.ova
+
 The first thing you should look at, is the file `PowerShell\New-ESXiHost.ps1`. This script will always be the first step in creating new virtual ESXi hosts.
 
 At the bottom of the script, there's an object that gets passed into the function `New-ESXiHost`. You need to edit the properties inside of this object ot suit your needs.
